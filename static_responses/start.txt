@@ -1,1 +1,5 @@
-Hi! This bot runs games of Secret Hitler via Telegram. Add me to a chat with all players and send the /newgame command there. This will specify where all public information is posted.
+Hallo fellow politician, Welcome to 1932 can you assist us in defeating Hitler and stem the rising tide of Facism here in our beloved Deutschland?
+
+Watch out for the secret Fascists amoungst your group and one player is secretly hitler in disguise.
+
+Start a new game using the /newgame command

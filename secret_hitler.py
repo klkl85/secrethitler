@@ -726,10 +726,10 @@ class Game(object):
         Pass a liberal policy, announce this fact, and check if this creates a liberal victory
         """
         self.liberal += 1
-        self.global_message("A liberal policy was passed!")
+        self.global_message("A 🕊️was passed!")
 
         if self.liberal == 5:
-            self.end_game("Liberal", "5 Liberal policies were enacted")
+            self.end_game("Liberal", "5 🕊️ policies were enacted")
 
     def pass_fascist(self, on_anarchy):
         """
@@ -738,12 +738,12 @@ class Game(object):
         """
         self.fascist += 1
         if self.fascist == 3:
-            self.global_message("A fascist policy was passed! Welcome to the HitlerZone™!")
+            self.global_message("A 😈 policy was passed! Welcome to the HitlerZone™!")
         else:
-            self.global_message("A fascist policy was passed!")
+            self.global_message("A 😈 policy was passed!")
 
         if self.fascist == 6:
-            self.end_game("Fascist", "6 Fascist policies were enacted")
+            self.end_game("Fascist", "6 😈 policies were enacted")
 
         if on_anarchy:
             return  # any executive powers ignored in anarchy
@@ -946,7 +946,7 @@ class Game(object):
         elif self.game_state == GameStates.EXECUTION:
             self.global_message("President {} must kill someone".format(self.president))
             self.president.send_message(
-                "Pick someone to kill!",
+                "Pick a facist to kill!",
                 reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton(candidate.name, callback_data="/kill {}".format(candidate.name))]
                     for candidate in self.players if candidate not in self.dead_players]))
         elif self.game_state == GameStates.GAME_OVER:
@@ -1092,7 +1092,7 @@ class Game(object):
             return self.show(["anarchy"])
         elif command == "blame":
             if time.time() - self.last_blame < BLAME_RATELIMIT:
-                from_player.send_message("Hey, slow down!")
+                from_player.send_message("Hey, slow down spammer!")
                 return
                 # avoid spam by respding with DM (good luck if there's Darbs playing)
 
