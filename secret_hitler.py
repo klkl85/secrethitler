@@ -15,7 +15,7 @@ from telegram import InlineKeyboardButton, InlineKeyboardMarkup, ParseMode
 
 import bot_telegram
 
-baseDIR = Path(__file__)
+baseDIR = Path(__file__).parent
 
 
 # Fix for #14
@@ -970,7 +970,7 @@ class Game(object):
         Save all current game info to a file
         """
 
-        with open(baseDIR.parent / fname, "w") as out_file:
+        with open(baseDIR / fname, "w") as out_file:
             pickle.dump(self, out_file)
 
     @classmethod
@@ -978,7 +978,7 @@ class Game(object):
         """
         Load a game from a file (output by save)
         """
-        with open(baseDIR.parent / fname, "r") as in_file:
+        with open(baseDIR / fname, "r") as in_file:
             return pickle.load(in_file)
 
     def get_blocked_player(self, test_msg="Trying to start game!"):

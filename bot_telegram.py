@@ -12,13 +12,13 @@ import telegram
 from telegram.error import TelegramError
 from telegram.ext import Updater, CommandHandler, CallbackQueryHandler, MessageHandler, Filters
 
-baseDIR = Path(__file__)
+baseDIR = Path(__file__).parent
 import secret_hitler
 
-with open(baseDIR.parent / "config/key", "r") as file:
+with open(baseDIR / "config/key", "r") as file:
     API_KEY = file.read().rstrip()
 
-with open(baseDIR.parent / "config/devchat", "r") as file:
+with open(baseDIR / "config/devchat", "r") as file:
     DEV_CHAT_ID = int(file.read().rstrip())
 
 bot = telegram.Bot(token=API_KEY)
@@ -103,7 +103,7 @@ def get_static_handler(command):
     Throws IOError if file does not exist or something
     """
 
-    f = open(baseDIR.parent / "static_responses/{}.txt".format(command), "r")
+    f = open(baseDIR / "static_responses/{}.txt".format(command), "r")
     response = f.read()
 
     return CommandHandler(command,
@@ -430,7 +430,7 @@ def feedback_handler(bot, update, args=None):
     Store feedback from users in a text file.
     """
     if args and len(args) > 0:
-        feedback = open(baseDIR.parent / "ignore/feedback.txt", "a")
+        feedback = open(baseDIR / "ignore/feedback.txt", "a")
         feedback.write("\n")
         feedback.write(update.message.from_user.first_name)
         feedback.write("\n")
