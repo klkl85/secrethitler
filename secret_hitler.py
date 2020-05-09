@@ -1072,7 +1072,7 @@ class Game(object):
                 return welcome_message
             elif command == "startgame":
                 if self.num_players < 5:
-                    return "Error: only {} players".format(self.num_players)
+                    return "Error: Only {} player{}".format(self.num_players,("","s")[self.num_players > 1])
 
                 blocked = self.get_blocked_player()
                 if blocked:
