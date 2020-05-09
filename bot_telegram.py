@@ -306,7 +306,7 @@ def restart_handler(bot, update):
 
 
 def restart_executor():
-    if call(["git", "pull"]) != 0:
+    if call(["git", "pull"], cwd=baseDIR) != 0:
         logging.error("git pull failed")
         bot.send_message(chat_id=DEV_CHAT_ID, text="Failed pulling newest bot version. Shutting down anyway.")
     else:
