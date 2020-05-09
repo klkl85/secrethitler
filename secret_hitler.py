@@ -197,7 +197,7 @@ class Game(object):
         to_show, rest = things_to_show[0], things_to_show[1:]
         if to_show == "liberal":
             message = "— Liberal Track —\n" + " ".join(
-                ["✖️", "✖️", "✖️", "✖️", "✖️"][:self.liberal] + ["✔️", "✔️", "✔️", "✔️", "🕊"][self.liberal - 5:])
+                ["✖️", "✖️", "✖️", "✖️", "✖️"][:self.liberal] + ["◻️️", "◻️️", "◻️️", "◻️️", "🕊"][self.liberal - 5:])
         elif to_show == "fascist":
             fascist_track = ["❌", "❌", "🔮", "🗡", "🗡", "☠️"]
             if self.num_players > 6:
