@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+from pathlib import Path
 import pickle
 import random
 import re
@@ -13,6 +14,9 @@ from telegram.error import Unauthorized, TelegramError
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, ParseMode
 
 import bot_telegram
+
+baseDIR = Path(__file__)
+
 
 # Fix for #14
 all_unicode_chars = (chr(i) for i in range(sys.maxunicode))
@@ -29,7 +33,7 @@ def strip_non_printable(s):
 
 markdown_regex = re.compile(".*((\[.*\]\(.*\))|\*|_|`).*")
 
-with open("config/username", "r") as f:
+with open(baseDIR / "config/username", "r") as f:
     BOT_USERNAME = f.read().rstrip()
 BLAME_RATELIMIT = 69  # seconds
 TESTING = (__name__ == "__main__")  # test whenever this file is run directly
@@ -966,7 +970,7 @@ class Game(object):
         Save all current game info to a file
         """
 
-        with open(fname, "w") as out_file:
+        with open(baseDIR.parent / fname, "w") as out_file:
             pickle.dump(self, out_file)
 
     @classmethod
@@ -974,7 +978,7 @@ class Game(object):
         """
         Load a game from a file (output by save)
         """
-        with open(fname, "r") as in_file:
+        with open(baseDIR.parent / fname, "r") as in_file:
             return pickle.load(in_file)
 
     def get_blocked_player(self, test_msg="Trying to start game!"):
