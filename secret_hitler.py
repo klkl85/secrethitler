@@ -101,7 +101,7 @@ class Player(object):
 
             self.game = None
             self.role = None
-			self.joinTimeout = None
+            self.joinTimeout = None
 
             return True
         else:
