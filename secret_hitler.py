@@ -199,7 +199,7 @@ class Game(object):
             message = "— Liberal Track —\n" + " ".join(
                 ["✖️", "✖️", "✖️", "✖️", "✖️"][:self.liberal] + ["◻️️", "◻️️", "◻️️", "◻️️", "🕊"][self.liberal - 5:])
         elif to_show == "fascist":
-            fascist_track = ["❌", "❌", "🔮", "🗡", "🗡", "☠️"]
+            fascist_track = ["◻️", "◻️", "🔮", "🗡", "🗡", "☠️"]
             if self.num_players > 6:
                 fascist_track[2] = "👔"
                 fascist_track[1] = "🔎"
@@ -410,7 +410,7 @@ class Game(object):
         return an appropriate error message about why the name is not valid.
         """
         name = strip_non_printable(name)  # Fix for #14
-        for forbidden_name in ("hitler", "🕊", "😈", "💠" "💢"):
+        for forbidden_name in ("hitler", "me too thanks", "🕊", "😈", "💠" "💢"):
             if name.lower() == forbidden_name:
                 return "Error: {} is not a valid name because it is too similar to {}".format(name, forbidden_name)
 
