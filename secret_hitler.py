@@ -15,33 +15,28 @@ from telegram import InlineKeyboardButton, InlineKeyboardMarkup, ParseMode
 
 import bot_telegram
 
+#Makes sure that file paths and commands (git pull) work if script is run from another location (i.e. daemon)
 baseDIR = Path(__file__).parent
-
 
 # Fix for #14
 all_unicode_chars = (chr(i) for i in range(sys.maxunicode))
 non_printable_chars = ''.join(c for c in all_unicode_chars if unicodedata.category(c) == 'Cc')
 non_printable_regex = re.compile('[%s]'%re.escape(non_printable_chars))
 
-
 def strip_non_printable(s):
     return non_printable_regex.sub('', s)
 
-
 # /Fix for #14
-
-
 markdown_regex = re.compile(".*((\[.*\]\(.*\))|\*|_|`).*")
 
 with open(baseDIR / "config/username", "r") as f:
     BOT_USERNAME = f.read().rstrip()
 BLAME_RATELIMIT = 69  # seconds
 TESTING = (__name__ == "__main__")  # test whenever this file is run directly
+
 # set TESTING to True to simulate a game locally
 if not TESTING:
-
     telegram_errors = []
-
     # unnecessary in TESTING mode
 
 
@@ -68,7 +63,7 @@ class Player(object):
             print("[ Message for {} ]\n{}".format(self, msg))
         else:
             try:
-                bot_telegram.bot.send_message(chat_id=self.id, text=msg, reply_markup=reply_markup)
+                bot_telegram.bot.send_message(chat_id=self.id, text=msg, reply_markup=reply_markup, parse_mode=ParseMode.MARKDOWN)
             except TelegramError as e:
                 if supress_errors:
                     telegram_errors.append(e)
@@ -130,7 +125,7 @@ class GameOverException(Exception):
 
 
 class Game(object):
-    def __init__(self, chat_id):
+    def __init__(self, chat_id, chat_title='Your Group'):
         """
         Initialize a game with a given chat location. Prepare deck/discard, begin accepting players.
         """
@@ -142,6 +137,8 @@ class Game(object):
             random.shuffle(self.deck)
 
         self.global_chat = chat_id
+        self.global_chat_title = chat_title
+        self.global_invite_link = bot_telegram.bot.export_chat_invite_link(chat_id=self.global_chat)
 
         self.discard = []
 
@@ -264,7 +261,7 @@ class Game(object):
             else:
                 raise Exception("Invalid number of players")
 
-            self.global_message("There are _{}_ liberals, _{}_ fascist{} & _Hitler_ in this game.".format(self.num_players - len(fascists),len(fascists) - 1,'s' if len(fascists) > 1 else ''))
+            self.global_message("> There are **{}** liberals, **{}** fascist{} & **Hitler** in this game.".format(self.num_players - len(fascists),len(fascists) - 1,'s' if len(fascists) > 1 else ''))
 
             for p in self.players:
                 if p == fascists[0]:
@@ -1067,8 +1064,12 @@ class Game(object):
                 elif not from_player.join_game(self):
                     return "Error: you've already joined another game! Leave/end that one to play here."
                 self.add_player(from_player)
-                welcome_message = "Welcome, {}! Make sure to [message me directly](t.me/{}) before the game starts so I can send you secret information.".format(
-                    from_player.name, BOT_USERNAME)
+
+                welcome_message = "Welcome, {}!".format(from_player.name)
+                try:
+                    from_player.send_message("You have joined a game of Secret Hitler in [{}]({})".format(self.global_chat_title, self.global_invite_link), supress_errors=False)
+                except Unauthorized as e:
+                    welcome_message += "\nMake sure to [message the bot directly](t.me/{}) before the game starts so I can send you secret information.".format(BOT_USERNAME)
                 # Show updated staging info
                 if self.num_players < 5:
                     welcome_message += "\nYou need {} more players before you can start.".format(
