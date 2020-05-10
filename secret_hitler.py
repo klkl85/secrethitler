@@ -1102,6 +1102,10 @@ class Game(object):
             return self.show_time_logs()
         elif self.game_state == GameStates.ACCEPT_PLAYERS:
             if command == "joingame":
+                # Check for expired joins
+                leavers_message = self.check_leavers()
+                if leavers_message:
+                    self.global_message(leavers_message)
                 if self.num_players == 10:
                     return "Error: game is full"
                 elif from_player in self.players:
@@ -1129,11 +1133,6 @@ class Game(object):
                         from_player.send_message("You have joined a game of Secret Hitler in [{}]({})".format(self.global_chat_title, self.global_invite_link), supress_errors=False)
                     except Unauthorized as e:
                         welcome_message += "\nMake sure to [message the bot directly](t.me/{}) before the game starts so I can send you secret information.".format(BOT_USERNAME)
-
-                # Check for expired joins
-                leavers_message = self.check_leavers()
-                if leavers_message:
-                    self.global_message(leavers_message)
 
                 # Show updated staging info
                 if self.num_players < 5:
