@@ -232,6 +232,30 @@ class Game(object):
             message += "\n" + self.show(rest)
         return message
 
+    def check_leavers(self, extended=True):
+        """
+        Checks if any players join has expired
+        """
+        left_players_message = ""
+        if self.game_state == GameStates.ACCEPT_PLAYERS: # Only remove players during initial state
+            for p in self.players:
+                if p.joinTimeout is not None:
+                    if p.joinTimeout < time.time():
+                        self.remove_player(p, suppressMessage=True)
+                        left_players_message += "{}👋 {} got bored of waiting and left the game!".format(
+                            "\n" if left_players_message != "" else "", p.get_markdown_tag())
+                    elif extended:
+                        minutes = int((p.joinTimeout - time.time()) / 60)
+                        if minutes >= 5:
+                            left_players_message += "{}⌚️ {} is only willing to wait for {} minute{} more".format(
+                                "\n" if left_players_message != "" else "",
+                                p.get_markdown_tag(), minutes, "s" if minutes > 1 else "")
+                        else:
+                            left_players_message += "{}⏰️ {}'s request to join will expire in {} minute{}".format(
+                                "\n" if left_players_message != "" else "",
+                                p.get_markdown_tag(), minutes, "s" if minutes > 1 else "")
+        return left_players_message
+
     def start_game(self):
         """
         Starts a game:
@@ -239,14 +263,8 @@ class Game(object):
         - send fascists night-phase information
         - begin presidential rotation with the first presidnet nominating their chancellor
         """
-        # Check no players have left the game
-        left_players_message = ""
 
-        for p in self.players:
-            if p.joinTimeout is not None:
-                if p.joinTimeout < time.time():
-                    self.remove_player(p, suppressMessage=True)
-                    left_players_message += "\n👋 {} got bored of waiting and left the game 👞".format(p.get_markdown_tag())
+        left_players_message = self.check_leavers()
         if self.num_players < 5:
             left_players_message += "\nYou need {} more players before you can start.".format(
                 ["5️⃣", "4️⃣", "3️⃣", "2️⃣", "1️⃣"][self.num_players], "" if self.num_players == 4 else "s")
@@ -458,7 +476,11 @@ class Game(object):
         (RIP) indicates a dead player
         (CNH) indicates a player that has been proven not to be Hitler
         """
-        ret = ""
+
+        # ret = ""
+        ret = self.check_leavers(extended=False)
+        if ret != "":
+            ret += "\n\n"
         for i in range(len(self.players)):
             status = ""
             if self.players[i] == self.president:
@@ -471,8 +493,12 @@ class Game(object):
                 status += " (RIP)"
             if self.players[i] in self.confirmed_not_hitlers:
                 status += " (CNH)"
+            if self.game_state == GameStates.ACCEPT_PLAYERS and self.players[i].joinTimeout is not None:
+                minutes = int((self.players[i].joinTimeout - time.time()) / 60)
+                emoji = "⌚️" if minutes >= 5 else "⏰"
+                msg = " {} min".format(minutes) if minutes > 0 else " 👀 Imminent"
+                status += " {}{}".format(emoji,msg)
             ret += "({}) {}{}\n".format(i + 1, self.players[i], status)
-
         return ret
 
     def add_player(self, p):
@@ -496,12 +522,14 @@ class Game(object):
             self.players.remove(p)
             self.votes.pop()
             self.num_players -= 1
+            p.joinTimeout = None
         elif p in self.dead_players:  # TODO probably unnecessary
             index = self.players.index(p)
             self.players.pop(index)
             self.votes.pop(index)
             self.num_players -= 1
             self.num_dead_players -= 1
+            p.joinTimeout = None
         else:
             self.global_message("Player {} left, so this game is self-destructing".format(p))
             self.set_game_state(GameStates.GAME_OVER)
@@ -1085,7 +1113,7 @@ class Game(object):
                     return "Error: you've already joined another game! Leave/end that one to play here."
                 self.add_player(from_player)
 
-                welcome_message = "Welcome, {}!".format(from_player)
+                welcome_message = "Welcome, {}!\n".format(from_player)
                 #You can join a game but specify a window of availability... if the game doesn't start after N minutes your willingness to join will be forcibly revoked
                 if args:
                     try:
@@ -1102,22 +1130,15 @@ class Game(object):
                         from_player.send_message("You have joined a game of Secret Hitler in [{}]({})".format(self.global_chat_title, self.global_invite_link), supress_errors=False)
                     except Unauthorized as e:
                         welcome_message += "\nMake sure to [message the bot directly](t.me/{}) before the game starts so I can send you secret information.".format(BOT_USERNAME)
+
                 # Check for expired joins
-                for p in self.players:
-                    if p.joinTimeout is not None:
-                        if p.joinTimeout < time.time():
-                            self.remove_player(p, suppressMessage=True)
-                            welcome_message += "\n 👋 {} got bored of waiting and left the game 👞".format(p.get_markdown_tag())
-                        else:
-                            minutes = int((p.joinTimeout - time.time()) / 60)
-                            if minutes >= 5:
-                                welcome_message += "\n ⌚️ {} is only willing to wait for {} minute{} more 👀".format(p.get_markdown_tag(), minutes, "s" if minutes > 1 else "")
-                            else:
-                                welcome_message += "\n ⏰️ {}'s request to join will expire in {} minute{} 👀".format(p.get_markdown_tag(), minutes, "s" if minutes > 1 else "")
+                leavers_message = self.check_leavers()
+                if leavers_message:
+                    self.global_message(leavers_message)
 
                 # Show updated staging info
                 if self.num_players < 5:
-                    welcome_message += "\nYou need {} more players before you can start.".format(["5️⃣", "4️⃣", "3️⃣", "2️⃣", "1️⃣"][self.num_players], "" if self.num_players == 4 else "s")
+                    welcome_message += "\n\nYou need {} more players before you can start.".format(["5️⃣", "4️⃣", "3️⃣", "2️⃣", "1️⃣"][self.num_players], "" if self.num_players == 4 else "s")
                 else:
                     welcome_message += "\nType /startgame to start the game with {} players!".format(self.num_players)
                 return welcome_message
