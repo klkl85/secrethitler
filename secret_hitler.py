@@ -1008,6 +1008,7 @@ class Game(object):
         and origin, perform the appropriate actions and change state if necessary.
         Returns a string that the bot should send as a reply or None if no reply is necessary.
         """
+        # print('ChatID => ', chat_id, 'fromPlayer => ', from_player, 'COMMAND => ', command, 'ARGS => ',args)
         # commands valid at any time
         if command == "listplayers":
             return self.list_players()
@@ -1224,15 +1225,19 @@ class Game(object):
         else:
             return "/{} is not valid here".format(command)
 
-    def TEST_handle(self, player, command, args=""):
+    def TEST_handle(self, player, command, args="", suppress=False):
         """
         TESTING FUNCTION: run self.handle_message(player, command, args) but print out
         the input and output for debugging
         """
-        response = self.handle_message(player, command, args)
-        print("[{}] {} {}".format(player, command, args))
-        if response:
+        if not suppress:
+            print("[{}] {} {}".format(player, command, args))
+            print('---')
+        response = self.handle_message(None, player, command, args)
+        if response and not suppress:
             print("[Reply to {}] {}".format(player, response))
+        if not suppress:
+            print('===\n')
 
     def TEST_vote(self, should_pass=True):
         """
@@ -1241,7 +1246,7 @@ class Game(object):
         """
         for p in self.players:
             if p not in self.dead_players:
-                self.TEST_handle(p, "ja" if should_pass else "nein")
+                self.TEST_handle(p, "ja" if should_pass else "nein", suppress=True)
 
 
 def test_game():
