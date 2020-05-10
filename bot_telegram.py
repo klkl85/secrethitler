@@ -375,11 +375,12 @@ def game_command_executor(bot, command, args, from_user, chat_id, chat_data, use
             bot.send_message(chat_id=chat_id, text="Error: no game in progress here. Start one with /newgame")
             return
         else:
-            if args and (game.check_name(args) is None):  # args is a valid name
-                player = secret_hitler.Player(from_user.id, args)
-            else:
-                # TODO: maybe also chack their Telegram first name for validity
-                player = secret_hitler.Player(from_user.id, from_user.first_name)
+            # 🐞 Setting a player name implicitly here is a bad idea just use their first name!
+            # if args and (game.check_name(args) is None):  # args is a valid name
+            #     player = secret_hitler.Player(from_user.id, args)
+            # else:
+            #     # TODO: maybe also chack their Telegram first name for validity
+            player = secret_hitler.Player(from_user.id, from_user.first_name)
 
             user_data["player_obj"] = player
     else:
@@ -389,7 +390,7 @@ def game_command_executor(bot, command, args, from_user, chat_id, chat_data, use
 
         # I don't know how you can end up here
         if game is None:
-            bot.send_message(chat_id=chat_id, text="Error: it doesn't look like you're currently in a game")
+            bot.send_message(chat_id=chat_id, text="Error: it doesn't look like you're currently in a game 🌵")
             return
 
     # at this point, 'player' and 'game' should both be set correctly

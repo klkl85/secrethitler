@@ -1085,7 +1085,7 @@ class Game(object):
                     return "Error: you've already joined another game! Leave/end that one to play here."
                 self.add_player(from_player)
 
-                welcome_message = "Welcome, {}!".format(from_player.name)
+                welcome_message = "Welcome, {}!".format(from_player)
                 #You can join a game but specify a window of availability... if the game doesn't start after N minutes your willingness to join will be forcibly revoked
                 if args:
                     try:
