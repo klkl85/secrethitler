@@ -427,7 +427,7 @@ class Game(object):
         return an appropriate error message about why the name is not valid.
         """
         name = strip_non_printable(name)  # Fix for #14
-        for forbidden_name in ("hitler", "me too thanks", "🕊", "😈", "💠" "💢", "🗡", "🔮","◻️", "🔎", "🗑", "✖️", "🗳", "🧐", "🤔", "😬", "‼️"):
+        for forbidden_name in ("hitler", "me too thanks", "🕊", "😈", "💠" "💢", "🗡", "🔮", "◻️", "🔎", "🗑", "✖️", "🗳", "🧐", "🤔", "😬", "‼️", "👞", "👀", "⌚️", "👋"):
             if name.lower() == forbidden_name:
                 return "Error: {} is not a valid name because it is too similar to {}".format(name, forbidden_name)
 
