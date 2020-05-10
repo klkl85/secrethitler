@@ -264,6 +264,8 @@ class Game(object):
             else:
                 raise Exception("Invalid number of players")
 
+            self.global_message("There are _{}_ liberals, _{}_ fascist{} & _Hitler_ in this game.".format(self.num_players - len(fascists),len(fascists) - 1,'s' if len(fascists) > 1 else ''))
+
             for p in self.players:
                 if p == fascists[0]:
                     p.set_role("Hitler")
