@@ -381,7 +381,6 @@ def game_command_executor(bot, command, args, from_user, chat_id, chat_data, use
             # else:
             #     # TODO: maybe also chack their Telegram first name for validity
             player = secret_hitler.Player(from_user.id, from_user.first_name)
-
             user_data["player_obj"] = player
     else:
         # it must be a DM or something, because there's no game in the current chat

@@ -242,6 +242,7 @@ class Game(object):
                 if p.joinTimeout is not None:
                     if p.joinTimeout < time.time():
                         self.remove_player(p, suppressMessage=True)
+                        p.leave_game(confirmed=True)
                         left_players_message += "{}👋 {} got bored of waiting and left the game!".format(
                             "\n" if left_players_message != "" else "", p.get_markdown_tag())
                     elif extended:
@@ -522,14 +523,12 @@ class Game(object):
             self.players.remove(p)
             self.votes.pop()
             self.num_players -= 1
-            p.joinTimeout = None
         elif p in self.dead_players:  # TODO probably unnecessary
             index = self.players.index(p)
             self.players.pop(index)
             self.votes.pop(index)
             self.num_players -= 1
             self.num_dead_players -= 1
-            p.joinTimeout = None
         else:
             self.global_message("Player {} left, so this game is self-destructing".format(p))
             self.set_game_state(GameStates.GAME_OVER)
@@ -1113,7 +1112,7 @@ class Game(object):
                     return "Error: you've already joined another game! Leave/end that one to play here."
                 self.add_player(from_player)
 
-                welcome_message = "Welcome, {}!\n".format(from_player)
+                welcome_message = "Welcome, {}!".format(from_player)
                 #You can join a game but specify a window of availability... if the game doesn't start after N minutes your willingness to join will be forcibly revoked
                 if args:
                     try:
