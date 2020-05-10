@@ -54,6 +54,7 @@ class Player(object):
         self.game = None
         self.party = None
         self.role = None
+        self.joinTimeout = None
 
     def __str__(self):
         return self.name
@@ -138,7 +139,8 @@ class Game(object):
 
         self.global_chat = chat_id
         self.global_chat_title = chat_title
-        self.global_invite_link = bot_telegram.bot.export_chat_invite_link(chat_id=self.global_chat)
+        if not TESTING:
+            self.global_invite_link = bot_telegram.bot.export_chat_invite_link(chat_id=self.global_chat)
 
         self.discard = []
 
@@ -236,6 +238,22 @@ class Game(object):
         - send fascists night-phase information
         - begin presidential rotation with the first presidnet nominating their chancellor
         """
+        # Check no players have left the game
+        left_players_message = ""
+
+        for p in self.players:
+            if p.joinTimeout is not None:
+                if p.joinTimeout < time.time():
+                    self.remove_player(p, suppressMessage=True)
+                    left_players_message += "\n👋 {} got bored of waiting and left the game 👞".format(p.get_markdown_tag())
+        if self.num_players < 5:
+            left_players_message += "\nYou need {} more players before you can start.".format(
+                ["5️⃣", "4️⃣", "3️⃣", "2️⃣", "1️⃣"][self.num_players], "" if self.num_players == 4 else "s")
+
+        if left_players_message != "":
+            self.global_message(left_players_message)
+        if self.num_players < 5:
+            return
 
         random.shuffle(self.players)  # randomize seating order
         self.global_message("Randomized seating order:\n" + self.list_players())
@@ -464,7 +482,7 @@ class Game(object):
         self.votes.append(None)
         self.num_players += 1
 
-    def remove_player(self, p):
+    def remove_player(self, p, suppressMessage = False):
         """
         Remove a Player p from the game. (If p is not in the game, does nothing)
         Only valid before game starts or, theoretically, if they're dead (untested)
@@ -487,15 +505,16 @@ class Game(object):
             self.global_message("Player {} left, so this game is self-destructing".format(p))
             self.set_game_state(GameStates.GAME_OVER)
             return
-        leave_message = "Player {} has left".format(p)
-        # If we're staging a new game, show updated staging info
-        if self.game_state == GameStates.ACCEPT_PLAYERS:
-            if self.num_players < 5:
-                leave_message += "\nYou need {} more players before you can start.".format(
-                    ["5️⃣", "4️⃣", "3️⃣", "2️⃣", "1️⃣"][self.num_players], "" if self.num_players == 4 else "s")
-            else:
-                leave_message += "\nType /startgame to start the game with {} players!".format(["0️⃣", "1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣", "7️⃣", "8️⃣", "9️⃣", "🔟"][self.num_players])
-        self.global_message(leave_message)
+        if not suppressMessage:
+            leave_message = "Player {} has left".format(p)
+            # If we're staging a new game, show updated staging info
+            if self.game_state == GameStates.ACCEPT_PLAYERS:
+                if self.num_players < 5:
+                    leave_message += "\nYou need {} more players before you can start.".format(
+                        ["5️⃣", "4️⃣", "3️⃣", "2️⃣", "1️⃣"][self.num_players], "" if self.num_players == 4 else "s")
+                else:
+                    leave_message += "\nType /startgame to start the game with {} players!".format(["0️⃣", "1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣", "7️⃣", "8️⃣", "9️⃣", "🔟"][self.num_players])
+            self.global_message(leave_message)
 
     def select_chancellor(self, target):
         """
@@ -1066,14 +1085,38 @@ class Game(object):
                 self.add_player(from_player)
 
                 welcome_message = "Welcome, {}!".format(from_player.name)
-                try:
-                    from_player.send_message("You have joined a game of Secret Hitler in [{}]({})".format(self.global_chat_title, self.global_invite_link), supress_errors=False)
-                except Unauthorized as e:
-                    welcome_message += "\nMake sure to [message the bot directly](t.me/{}) before the game starts so I can send you secret information.".format(BOT_USERNAME)
+                #You can join a game but specify a window of availability... if the game doesn't start after N minutes your willingness to join will be forcibly revoked
+                if args:
+                    try:
+                        joinExpiry = int(args)
+                        expiryTime = time.time() + joinExpiry * 60
+                        from_player.joinTimeout = expiryTime
+                        welcome_message += "\nYou have set a join timeout for {} minute{} ⌚️👀".format(joinExpiry,"s" if joinExpiry > 1 else "")
+                    except ValueError as e:
+                        #Ignore invalid time
+                        welcome_message += "\n/leavegame then /joingame **NUMBER** if you want your join to expire after X Minutes *Can't wait around all day for a game right?!*"
+
+                if not TESTING:
+                    try:
+                        from_player.send_message("You have joined a game of Secret Hitler in [{}]({})".format(self.global_chat_title, self.global_invite_link), supress_errors=False)
+                    except Unauthorized as e:
+                        welcome_message += "\nMake sure to [message the bot directly](t.me/{}) before the game starts so I can send you secret information.".format(BOT_USERNAME)
+                # Check for expired joins
+                for p in self.players:
+                    if p.joinTimeout is not None:
+                        if p.joinTimeout < time.time():
+                            self.remove_player(p, suppressMessage=True)
+                            welcome_message += "\n 👋 {} got bored of waiting and left the game 👞".format(p.get_markdown_tag())
+                        else:
+                            minutes = int((p.joinTimeout - time.time()) / 60)
+                            if minutes >= 5:
+                                welcome_message += "\n ⌚️ {} is only willing to wait for {} minute{} more 👀".format(p.get_markdown_tag(), minutes, "s" if minutes > 1 else "")
+                            else:
+                                welcome_message += "\n ⏰️ {}'s request to join will expire in {} minute{} 👀".format(p.get_markdown_tag(), minutes, "s" if minutes > 1 else "")
+
                 # Show updated staging info
                 if self.num_players < 5:
-                    welcome_message += "\nYou need {} more players before you can start.".format(
-                        ["5️⃣", "4️⃣", "3️⃣", "2️⃣", "1️⃣"][self.num_players], "" if self.num_players == 4 else "s")
+                    welcome_message += "\nYou need {} more players before you can start.".format(["5️⃣", "4️⃣", "3️⃣", "2️⃣", "1️⃣"][self.num_players], "" if self.num_players == 4 else "s")
                 else:
                     welcome_message += "\nType /startgame to start the game with {} players!".format(self.num_players)
                 return welcome_message
