@@ -945,7 +945,6 @@ class Game(object):
         self.time_logs[-1][new_state] = {self.spectator: 0 + time.time()}  # store time at which the state was entered
 
         if self.game_state == GameStates.CHANCY_NOMINATION:
-            self.global_message("President {} must nominate a chancellor".format(self.president))
             self.president.send_message("Pick your chancellor! 🤔",
                 reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton(candidate.name, callback_data="/nominate {}".format(candidate.name))]
                     for candidate in self.players if
@@ -954,6 +953,7 @@ class Game(object):
                     candidate != self.president
                 ]
             ))
+            self.global_message("President {} must nominate a chancellor".format(self.president))
         elif self.game_state == GameStates.ELECTION:
             self.global_message(
                 "🗳 Election: Vote on President {} and Chancellor {}".format(self.president, self.chancellor))
