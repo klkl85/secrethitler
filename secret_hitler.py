@@ -1015,8 +1015,8 @@ class Game(object):
         """
         Save all current game info to a file
         """
-
         with open(baseDIR / fname, "w") as out_file:
+            bot_telegram.logging.debug("Trying to save to `%s`", out_file)
             pickle.dump(self, out_file)
 
     @classmethod
