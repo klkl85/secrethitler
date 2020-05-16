@@ -1162,7 +1162,7 @@ class Game(object):
             return self.show(["anarchy"])
         elif command == "blame":
             if time.time() - self.last_blame < BLAME_RATELIMIT:
-                from_player.send_message("Hey, slow down spammer!")
+                from_player.send_message("Hey, slow down someone already blamed ! 😡")
                 return
                 # avoid spam by respding with DM (good luck if there's Darbs playing)
 
@@ -1175,21 +1175,21 @@ class Game(object):
                 chancy_tag = self.chancellor.get_markdown_tag()
 
             if self.game_state == GameStates.ELECTION:
-                return "People who haven't yet voted:\n" + self.list_nonvoters()
+                return "People who haven't yet voted: {}\n".format(random.choice('👇🏻','👇🏼','👇🏽','👇🏾','👇🏿')) + self.list_nonvoters()
             elif self.game_state == GameStates.CHANCY_NOMINATION:
-                return "{} needs to nominate a chancellor!".format(pres_tag)
+                return "{} 🗳 needs to nominate a chancellor!".format(pres_tag)
             elif self.game_state == GameStates.LEG_PRES:
-                return "{} needs to discard a policy!".format(pres_tag)
+                return "{} 🗑 needs to discard a policy!".format(pres_tag)
             elif self.game_state == GameStates.LEG_CHANCY:
-                return "{} needs to enact a policy!".format(chancy_tag)
+                return "{} 🛎 needs to enact a policy!".format(chancy_tag)
             elif self.game_state == GameStates.VETO_CHOICE:
-                return "{} and {} need to decide whether to veto!".format(pres_tag, chancy_tag)
+                return "{} and {} need to decide whether to veto! 🤝".format(pres_tag, chancy_tag)
             elif self.game_state == GameStates.INVESTIGATION:
-                return "{} needs to pick someone to investigate!".format(pres_tag)
+                return "{} 🔍 needs to pick someone to investigate!".format(pres_tag)
             elif self.game_state == GameStates.SPECIAL_ELECTION:
-                return "{} needs to pick someone to special elect!".format(pres_tag)
+                return "{} 🥇 needs to pick someone to special elect!".format(pres_tag)
             elif self.game_state == GameStates.EXECUTION:
-                return "{} needs to pick someone to kill!".format(pres_tag)
+                return "{} ⚰️ needs to pick someone to kill!".format(pres_tag)
         elif from_player not in self.players or from_player in self.dead_players:
             return "Error: Spectators/dead players cannot use commands that modify game data"
             # further commands affect game state
