@@ -5,7 +5,7 @@ ja - JA!
 nein - NEIN!
 listplayers - List the players
 newgame - Init new game
-joingame - Join game
+joingame - Join game [ number ]
 startgame - Start game
 cancelgame - Cancel game
 nextgame - Get a notification when a new game is opened
