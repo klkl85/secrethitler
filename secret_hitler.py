@@ -1175,7 +1175,7 @@ class Game(object):
                 chancy_tag = self.chancellor.get_markdown_tag()
 
             if self.game_state == GameStates.ELECTION:
-                return "People who haven't yet voted: {}\n".format(random.choice('👇🏻','👇🏼','👇🏽','👇🏾','👇🏿')) + self.list_nonvoters()
+                return "People who haven't yet voted: {}\n".format(random.choice(['👇🏻', '👇🏼', '👇🏽', '👇🏾', '👇🏿'])) + self.list_nonvoters()
             elif self.game_state == GameStates.CHANCY_NOMINATION:
                 return "{} 🗳 needs to nominate a chancellor!".format(pres_tag)
             elif self.game_state == GameStates.LEG_PRES:
