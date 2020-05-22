@@ -306,7 +306,7 @@ def restart_handler(bot, update):
         logging.warning("Restart command issued in unauthorized group or by non-admin user. Not reacting.")
 
 
-def version_executor():
+def version_executor(bot, update):
     version = check_output(['git', '--no-pager', 'log', '-1', '--format="%ai"'], cwd=baseDIR)
     if version:
         logging.info("git version success")
