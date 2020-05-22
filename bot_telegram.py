@@ -311,7 +311,7 @@ def version_executor(bot, update):
     if version:
         logging.info("git version success")
         chunks = version.decode('utf-8')[1:-3].split()
-        bot.send_message(chat_id=update.message.chat.id, text="Commit: {}\nUpdated: {}".format(chunks[-1],' '.join(chunks[:1])))
+        bot.send_message(chat_id=update.message.chat.id, text="Commit: {}\nUpdated: {}".format(chunks[-1],' '.join(chunks[:2])))
     else:
         logging.error("VERSION fail")
         bot.send_message(chat_id=DEV_CHAT_ID, text="Failed figuring out version.")
