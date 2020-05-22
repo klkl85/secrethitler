@@ -307,10 +307,11 @@ def restart_handler(bot, update):
 
 
 def version_executor(bot, update):
-    version = check_output(['git', '--no-pager', 'log', '-1', '--format="%ai"'], cwd=baseDIR)
+    version = check_output(['git', '--no-pager', 'log', '-1', '--format="%ai %h"'], cwd=baseDIR)
     if version:
         logging.info("git version success")
-        bot.send_message(chat_id=DEV_CHAT_ID, text="Version: {}".format(version))
+        chunks = version.decode('utf-8')[1:-3].split()
+        bot.send_message(chat_id=update.message.chat.id, text="Commit: {}\nUpdated: {}".format(chunks[-1],' '.join(chunks[:1])))
     else:
         logging.error("VERSION fail")
         bot.send_message(chat_id=DEV_CHAT_ID, text="Failed figuring out version.")
