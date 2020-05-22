@@ -6,7 +6,7 @@ import os
 from pathlib import Path
 import sys
 import threading
-from subprocess import call
+from subprocess import call, check_output
 
 import telegram
 from telegram.error import TelegramError
