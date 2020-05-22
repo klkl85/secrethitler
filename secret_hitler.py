@@ -766,10 +766,10 @@ class Game(object):
             self.pass_fascist(on_anarchy)
 
         self.check_reshuffle()
+        self.global_message(self.show())
         if not on_anarchy and self.game_state == GameStates.LEG_CHANCY:  # don't need to wait for other decisison
             self.advance_presidency()
 
-        self.global_message(self.show())
 
     def pass_liberal(self):
         """
@@ -953,7 +953,7 @@ class Game(object):
                     candidate != self.president
                 ]
             ))
-            self.global_message("President {} must nominate a chancellor".format(self.president))
+            self.global_message("President {} must nominate a chancellor".format(self.president.get_markdown_tag()))
         elif self.game_state == GameStates.ELECTION:
             self.global_message(
                 "🗳 Election: Vote on President {} and Chancellor {}".format(self.president, self.chancellor))
