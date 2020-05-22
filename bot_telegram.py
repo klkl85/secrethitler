@@ -61,6 +61,7 @@ def main():
     dispatcher.add_handler(CommandHandler('leave', leave_handler, pass_user_data=True))
     dispatcher.add_handler(CommandHandler('listgames', listgames_handler))
     dispatcher.add_handler(CommandHandler('restart', restart_handler))
+    dispatcher.add_handler(CommandHandler('version', version_executor))
     dispatcher.add_handler(CommandHandler('nextgame', nextgame_handler, pass_chat_data=True))
     dispatcher.add_handler(CommandHandler('joingame', joingame_handler, pass_chat_data=True, pass_user_data=True))
     dispatcher.add_handler(
@@ -303,6 +304,16 @@ def restart_handler(bot, update):
             restart_executor()
     else:
         logging.warning("Restart command issued in unauthorized group or by non-admin user. Not reacting.")
+
+
+def version_executor():
+    version = check_output(['git', '--no-pager', 'log', '-1', '--format="%ai"'], cwd=baseDIR)
+    if version:
+        logging.info("git version success")
+        bot.send_message(chat_id=DEV_CHAT_ID, text="Version: {}".format(version))
+    else:
+        logging.error("VERSION fail")
+        bot.send_message(chat_id=DEV_CHAT_ID, text="Failed figuring out version.")
 
 
 def restart_executor():
