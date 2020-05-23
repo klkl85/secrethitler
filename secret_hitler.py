@@ -465,8 +465,8 @@ class Game(object):
         for p in self.players:
             if p != current_player and p.name.lower() == name.lower():
                 return "Error: name '{}' is already taken".format(name)
-		if len(name) > 16:
-			return "Stop being a 👹 Pick a shorter name!"
+        if len(name) > 16:
+            return "Stop being a 👹 Pick a shorter name!"
         return None
 
     def list_players(self, displayTimeout=True):
@@ -960,7 +960,7 @@ class Game(object):
                 "🗳 Election: Vote on President {} and Chancellor {}".format(self.president, self.chancellor))
             for p in self.players:  # send individual messages to clarify who you're voting on
                 if p not in self.dead_players:
-                    p.send_message("🗳 Vote for President {} and Chancellor {}:".format(self.president, self.chancellor),
+                    p.send_message("📮 Vote for President {} and Chancellor {}:".format(self.president, self.chancellor),
                         reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("Ja", callback_data="/ja"), InlineKeyboardButton("Nein", callback_data="/nein")]]))
         elif self.game_state == GameStates.LEG_PRES:
             self.global_message("Legislative session in progress (waiting on President {})".format(self.president))
