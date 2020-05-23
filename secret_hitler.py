@@ -447,9 +447,9 @@ class Game(object):
         return an appropriate error message about why the name is not valid.
         """
         name = strip_non_printable(name)  # Fix for #14
-        for forbidden_name in ("hitler", "me too thanks", "🕊", "😈", "💠" "💢", "🗡", "🔮", "◻️", "🔎", "🗑", "✖️", "🗳", "🧐", "🤔", "😬", "‼️", "👞", "👀", "⌚️", "👋"):
-            if name.lower() == forbidden_name:
-                return "Error: {} is not a valid name because it is too similar to {}".format(name, forbidden_name)
+        for forbidden_name in ("hitler", "me too thanks", "🕊", "😈", "💠" "💢", "🗡", "🔮", "◻️", "🔎", "🗑", "✖️", "🗳", "🧐", "🤔", "😬", "‼️", "👞", "👀", "⌚️", "👋", "‏‏‎ ‎", "🥚"):
+            if forbidden_name in name.lower():
+                return "Error: {} is not a valid name because it contains the forbidden element `{}`".format(name, forbidden_name)
 
         if name.isdigit() and int(name) <= 10:
             return "Error: name cannot be a number between 1 and 10"
@@ -465,7 +465,8 @@ class Game(object):
         for p in self.players:
             if p != current_player and p.name.lower() == name.lower():
                 return "Error: name '{}' is already taken".format(name)
-
+		if len(name) > 16:
+			return "Stop being a 👹 Pick a shorter name!"
         return None
 
     def list_players(self):
