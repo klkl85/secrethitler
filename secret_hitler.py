@@ -248,7 +248,7 @@ class Game(object):
                     elif extended:
                         minutes = int((p.joinTimeout - time.time()) / 60)
                         if minutes >= 5:
-                            left_players_message += "{}⌚️ {} is only willing to wait for {} minute{} more".format(
+                            left_players_message += "{}⌚️ {} is willing to wait for {} minute{} more".format(
                                 "\n" if left_players_message != "" else "",
                                 p.get_markdown_tag(), minutes, "s" if minutes > 1 else "")
                         else:
@@ -265,7 +265,7 @@ class Game(object):
         - begin presidential rotation with the first presidnet nominating their chancellor
         """
 
-        left_players_message = self.check_leavers()
+        left_players_message = self.check_leavers(extended=False)
         if self.num_players < 5:
             left_players_message += "\nYou need {} more players before you can start.".format(
                 ["5️⃣", "4️⃣", "3️⃣", "2️⃣", "1️⃣"][self.num_players], "" if self.num_players == 4 else "s")
@@ -276,7 +276,7 @@ class Game(object):
             return
 
         random.shuffle(self.players)  # randomize seating order
-        self.global_message("Randomized seating order:\n" + self.list_players())
+        self.global_message("Randomized seating order:\n" + self.list_players(displayTimeout=False))
 
         self.num_players = len(self.players)
         self.num_alive_players = self.num_players
@@ -447,9 +447,9 @@ class Game(object):
         return an appropriate error message about why the name is not valid.
         """
         name = strip_non_printable(name)  # Fix for #14
-        for forbidden_name in ("hitler", "me too thanks", "🕊", "😈", "💠" "💢", "🗡", "🔮", "◻️", "🔎", "🗑", "✖️", "🗳", "🧐", "🤔", "😬", "‼️", "👞", "👀", "⌚️", "👋"):
-            if name.lower() == forbidden_name:
-                return "Error: {} is not a valid name because it is too similar to {}".format(name, forbidden_name)
+        for forbidden_name in ("hitler", "me too thanks", "🕊", "😈", "💠" "💢", "🗡", "🔮", "◻️", "🔎", "🗑", "✖️", "🗳", "🧐", "🤔", "😬", "‼️", "👞", "👀", "⌚️", "👋", "‏‏‎ ‎", "🥚"):
+            if forbidden_name in name.lower():
+                return "Error: {} is not a valid name because it contains the forbidden element `{}`".format(name, forbidden_name)
 
         if name.isdigit() and int(name) <= 10:
             return "Error: name cannot be a number between 1 and 10"
@@ -465,10 +465,11 @@ class Game(object):
         for p in self.players:
             if p != current_player and p.name.lower() == name.lower():
                 return "Error: name '{}' is already taken".format(name)
-
+        if len(name) > 16:
+            return "Stop being a 👹 Pick a shorter name!"
         return None
 
-    def list_players(self):
+    def list_players(self, displayTimeout=True):
         """
         List all players (separated by newlines) with their indices and annotations:
         (P) indicates a president/presidential candidate
@@ -494,7 +495,7 @@ class Game(object):
                 status += " (RIP)"
             if self.players[i] in self.confirmed_not_hitlers:
                 status += " (CNH)"
-            if self.game_state == GameStates.ACCEPT_PLAYERS and self.players[i].joinTimeout is not None:
+            if self.game_state == GameStates.ACCEPT_PLAYERS and self.players[i].joinTimeout is not None and displayTimeout == True:
                 minutes = int((self.players[i].joinTimeout - time.time()) / 60)
                 emoji = "⌚️" if minutes >= 5 else "⏰"
                 msg = " {} min".format(minutes) if minutes > 0 else " 👀 Imminent"
@@ -959,7 +960,7 @@ class Game(object):
                 "🗳 Election: Vote on President {} and Chancellor {}".format(self.president, self.chancellor))
             for p in self.players:  # send individual messages to clarify who you're voting on
                 if p not in self.dead_players:
-                    p.send_message("🗳 Vote for President {} and Chancellor {}:".format(self.president, self.chancellor),
+                    p.send_message("📮 Vote for President {} and Chancellor {}:".format(self.president, self.chancellor),
                         reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("Ja", callback_data="/ja"), InlineKeyboardButton("Nein", callback_data="/nein")]]))
         elif self.game_state == GameStates.LEG_PRES:
             self.global_message("Legislative session in progress (waiting on President {})".format(self.president))
@@ -1143,7 +1144,6 @@ class Game(object):
             elif command == "startgame":
                 if self.num_players < 5:
                     return "Error: Only {} player{}".format(self.num_players,("","s")[self.num_players > 1])
-
                 blocked = self.get_blocked_player()
                 if blocked:
                     return "Error: All players must have messaged and not blocked @{}! {} must message/unblock me." \
