@@ -469,6 +469,22 @@ class Game(object):
             return "Stop being a 👹 Pick a shorter name!"
         return None
 
+    def join_game_timeout(self, args, from_player):
+        """
+        You can join a game but specify a window of availability... if the game doesn't start after N minutes your willingness to join will be forcibly revoked
+        Also resets expiry if they set a new time
+        """
+        if args:
+            try:
+                joinExpiry = int(args)
+                expiryTime = time.time() + joinExpiry * 60
+                from_player.joinTimeout = expiryTime
+                return "\nYou have set a join timeout for {} minute{} ⌚️👀".format(joinExpiry,"s" if joinExpiry > 1 else "")
+            except ValueError as e:
+                #Ignore invalid time
+                return "\n/leavegame then /joingame **NUMBER** if you want your join to expire after X Minutes *Can't wait around all day for a game right?!*"
+
+
     def list_players(self, displayTimeout=True):
         """
         List all players (separated by newlines) with their indices and annotations:
@@ -1103,32 +1119,25 @@ class Game(object):
             return self.show_time_logs()
         elif self.game_state == GameStates.ACCEPT_PLAYERS:
             if command == "joingame":
-                # Check for expired joins
-                leavers_message = self.check_leavers()
-                if leavers_message:
-                    self.global_message(leavers_message)
-                if self.num_players == 10:
-                    return "Error: game is full"
-                elif from_player in self.players:
-                    return "Error: you've already joined"
-                elif from_player in self.spectators:
-                    return "Error: you cannot join a game you're spectating. Please /unspectate to join"
-                elif not from_player.join_game(self):
-                    return "Error: you've already joined another game! Leave/end that one to play here."
-                self.add_player(from_player)
+                if args and from_player in self.players:
+                    return self.join_game_timeout(args, from_player)
+                else:    
+                    # Check for expired joins
+                    leavers_message = self.check_leavers()
+                    if leavers_message:
+                        self.global_message(leavers_message)
+                    if self.num_players == 10:
+                        return "Error: game is full"
+                    elif from_player in self.players:
+                        return "Error: you've already joined"
+                    elif from_player in self.spectators:
+                        return "Error: you cannot join a game you're spectating. Please /unspectate to join"
+                    elif not from_player.join_game(self):
+                        return "Error: you've already joined another game! Leave/end that one to play here."
+                    self.add_player(from_player)
 
                 welcome_message = "Welcome, {}!".format(from_player)
-                #You can join a game but specify a window of availability... if the game doesn't start after N minutes your willingness to join will be forcibly revoked
-                if args:
-                    try:
-                        joinExpiry = int(args)
-                        expiryTime = time.time() + joinExpiry * 60
-                        from_player.joinTimeout = expiryTime
-                        welcome_message += "\nYou have set a join timeout for {} minute{} ⌚️👀".format(joinExpiry,"s" if joinExpiry > 1 else "")
-                    except ValueError as e:
-                        #Ignore invalid time
-                        welcome_message += "\n/leavegame then /joingame **NUMBER** if you want your join to expire after X Minutes *Can't wait around all day for a game right?!*"
-
+                welcome_message += self.join_game_timeout(args, from_player)
                 if not TESTING:
                     try:
                         from_player.send_message("You have joined a game of Secret Hitler in [{}]({})".format(self.global_chat_title, self.global_invite_link), supress_errors=False)
