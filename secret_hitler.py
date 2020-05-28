@@ -299,7 +299,7 @@ class Game(object):
             else:
                 raise Exception("Invalid number of players")
 
-            self.global_message("There are __{}__ liberals, ***{}*** fascist{} & __*Hitler*__ in this game.".format(self.num_players - len(fascists),len(fascists) - 1,'s' if len(fascists) > 2 else ''))
+            self.global_message("There are ***{}*** liberals, ***{}*** fascist{} & __*Hitler*__ in this game.".format(self.num_players - len(fascists),len(fascists) - 1,'s' if len(fascists) > 2 else ''))
 
             for p in self.players:
                 if p == fascists[0]:
