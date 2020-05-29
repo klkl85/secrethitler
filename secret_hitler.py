@@ -479,7 +479,7 @@ class Game(object):
                 joinExpiry = int(args)
                 expiryTime = time.time() + joinExpiry * 60
                 from_player.joinTimeout = expiryTime
-                return "\nYou have set a join timeout for {} minute{} ⌚️👀".format(joinExpiry,"s" if joinExpiry > 1 else "")
+                return "\n***{}*** has set a join timeout for ***{}*** minute{} ⌚️👀".format(from_player.name,joinExpiry,"s" if joinExpiry > 1 else "")
             except ValueError as e:
                 #Ignore invalid time
                 return "\n/leavegame then /joingame **NUMBER** if you want your join to expire after X Minutes *Can't wait around all day for a game right?!*"
