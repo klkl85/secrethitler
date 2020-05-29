@@ -232,7 +232,7 @@ class Game(object):
             message += "\n" + self.show(rest)
         return message
 
-    def check_leavers(self, extended=True):
+    def check_waiting_players(self, extended=True):
         """
         Checks if any players join has expired
         """
@@ -265,7 +265,7 @@ class Game(object):
         - begin presidential rotation with the first presidnet nominating their chancellor
         """
 
-        left_players_message = self.check_leavers(extended=False)
+        left_players_message = self.check_waiting_players(extended=False)
         if self.num_players < 5:
             left_players_message += "\nYou need {} more players before you can start.".format(
                 ["5️⃣", "4️⃣", "3️⃣", "2️⃣", "1️⃣"][self.num_players], "" if self.num_players == 4 else "s")
@@ -447,7 +447,7 @@ class Game(object):
         return an appropriate error message about why the name is not valid.
         """
         name = strip_non_printable(name)  # Fix for #14
-        for forbidden_name in ("hitler", "me too thanks", "🕊", "😈", "💠" "💢", "🗡", "🔮", "◻️", "🔎", "🗑", "✖️", "🗳", "🧐", "🤔", "😬", "‼️", "👞", "👀", "⌚️", "👋", "‏‏‎ ‎", "🥚"):
+        for forbidden_name in ("hitler", "me too thanks", "🕊", "😈", "💠" "💢", "🗡", "🔮", "◻️", "🔎", "🗑", "✖️", "🗳", "🧐", "🤔", "😬", "‼️", "👞", "👀", "⌚️", "👋", "‏‏‎ ‎", "🥚", "🚨"):
             if forbidden_name in name.lower():
                 return "Error: {} is not a valid name because it contains the forbidden element `{}`".format(name, forbidden_name)
 
@@ -497,7 +497,7 @@ class Game(object):
         """
 
         # ret = ""
-        ret = self.check_leavers(extended=False)
+        ret = self.check_waiting_players(extended=False)
         if ret != "":
             ret += "\n\n"
         for i in range(len(self.players)):
@@ -806,7 +806,7 @@ class Game(object):
         """
         self.fascist += 1
         if self.fascist == 3:
-            self.global_message("A 😈 policy was passed! Welcome to the HitlerZone™!")
+            self.global_message("A 😈 policy was passed! Welcome to the HitlerZone™! 🚨")
         else:
             self.global_message("A 😈 policy was passed!")
 
@@ -1121,12 +1121,12 @@ class Game(object):
         elif self.game_state == GameStates.ACCEPT_PLAYERS:
             if command == "joingame":
                 # Check for expired joins
-                leavers_message = self.check_leavers()
+                waiting_players_message = self.check_waiting_players()
+                if waiting_players_message:
+                    self.global_message(waiting_players_message)
                 if args and from_player in self.players:
-                    return "{}{}".format(leavers_message + "\n\n" if leavers_message else "", self.join_game_timeout(args, from_player))
-                else:    
-                    if leavers_message:
-                        self.global_message(leavers_message)
+                    return self.join_game_timeout(args, from_player)
+                else:
                     if self.num_players == 10:
                         return "Error: game is full"
                     elif from_player in self.players:
