@@ -1119,11 +1119,11 @@ class Game(object):
             return self.show_time_logs()
         elif self.game_state == GameStates.ACCEPT_PLAYERS:
             if command == "joingame":
+                # Check for expired joins
+                leavers_message = self.check_leavers()
                 if args and from_player in self.players:
-                    return self.join_game_timeout(args, from_player)
+                    return "{}{}".format(leavers_message + "\n\n" if leavers_message else "", self.join_game_timeout(args, from_player))
                 else:    
-                    # Check for expired joins
-                    leavers_message = self.check_leavers()
                     if leavers_message:
                         self.global_message(leavers_message)
                     if self.num_players == 10:
