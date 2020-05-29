@@ -483,7 +483,8 @@ class Game(object):
             except ValueError as e:
                 #Ignore invalid time
                 return "\n/leavegame then /joingame **NUMBER** if you want your join to expire after X Minutes *Can't wait around all day for a game right?!*"
-
+        return ""
+        
 
     def list_players(self, displayTimeout=True):
         """
