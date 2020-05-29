@@ -56,6 +56,9 @@ def main():
     dispatcher.add_handler(get_static_handler("changelog"))
     dispatcher.add_handler(CommandHandler('feedback', feedback_handler, pass_args=True))
 
+    dispatcher.add_handler(CommandHandler('joinpuppet', puppet_join_handler, pass_chat_data=True, pass_user_data=True))
+    dispatcher.add_handler(CommandHandler('leavepuppet', puppet_leave_handler, pass_user_data=True))
+
     dispatcher.add_handler(CommandHandler('newgame', newgame_handler, pass_chat_data=True))
     dispatcher.add_handler(CommandHandler('cancelgame', cancelgame_handler, pass_chat_data=True))
     dispatcher.add_handler(CommandHandler('leave', leave_handler, pass_user_data=True))
@@ -205,7 +208,7 @@ def joingame_handler(bot, update, chat_data, user_data):
     game_command_handler(bot, update, chat_data, user_data)
 
 
-def leave_handler(bot, update, user_data):
+def leave_handler(bot, update, user_data, puppet):
     """
     Forces a user to leave their current game, regardless of game state (could
     kill the game)
@@ -218,7 +221,10 @@ def leave_handler(bot, update, user_data):
         user_data["player_obj"] = restored_players[player_id]
         del restored_players[player_id]
 
-    player = user_data.get("player_obj")
+    if puppet == True:
+        player = user_data.get("puppet_obj")
+    else:  
+        player = user_data.get("player_obj")
 
     if player is None or player.game is None:
         reply = "No game to leave!"
@@ -351,10 +357,13 @@ COMMAND_ALIASES = {"nom": "nominate", "blam": "blame", "dig": "investigate", "lo
 
 def game_command_handler(bot, update, chat_data, user_data):
     command, args = parse_message(update.message.text)
-    game_command_executor(bot, command, args, update.message.from_user, update.message.chat.id, chat_data, user_data)
+    game_command_executor(bot, command, args, update.message.from_user, update.message.chat.id, chat_data, user_data, False)
 
+def game_command_handler_puppet(bot, update, chat_data, user_data):
+    command, args = parse_message(update.message.text)
+    game_command_executor(bot, command, args, update.message.from_user, update.message.chat.id, chat_data, user_data, True)
 
-def game_command_executor(bot, command, args, from_user, chat_id, chat_data, user_data):
+def game_command_executor(bot, command, args, from_user, chat_id, chat_data, user_data, puppet):
     """
     Pass all commands that secret_hitler.Game can handle to game's handle_message method
     Send outputs as replies via Telegram
@@ -363,6 +372,7 @@ def game_command_executor(bot, command, args, from_user, chat_id, chat_data, use
         command = COMMAND_ALIASES[command]
 
     # Try to restore relevant save data (and mark this data as dirty)
+    # This doesn't support puppets
     global restored_game
     global restored_players
     if restored_game is not None and restored_game.global_chat == chat_id:
@@ -378,6 +388,8 @@ def game_command_executor(bot, command, args, from_user, chat_id, chat_data, use
         player = user_data["player_obj"]
     if "game_obj" in list(chat_data.keys()):
         game = chat_data["game_obj"]
+    if "puppet_obj" in list(user_data.keys()):
+        player = user_data["puppet_obj"]    
 
     # game = ((player is not None) and player.game) or chat_data["game_obj"]
     if player is None:
@@ -392,8 +404,12 @@ def game_command_executor(bot, command, args, from_user, chat_id, chat_data, use
             #     player = secret_hitler.Player(from_user.id, args)
             # else:
             #     # TODO: maybe also chack their Telegram first name for validity
-            player = secret_hitler.Player(from_user.id, from_user.first_name)
-            user_data["player_obj"] = player
+            if puppet == True :
+                player = secret_hitler.Player("99", args)
+                user_data["puppet_obj"] = player
+            else:    
+                player = secret_hitler.Player(from_user.id, from_user.first_name)
+                user_data["player_obj"] = player  
     else:
         # it must be a DM or something, because there's no game in the current chat
         if game is None:
@@ -485,6 +501,11 @@ def save_game(bot, update, chat_data, user_data):
         bot.send_message(chat_id=update.message.chat_id,
                          text="Saved game in current state as '{}'".format(fname))
 
+def puppet_join_handler(bot, update, chat_data, user_data):
+    game_command_handler_puppet(bot, update, chat_data, user_data)
+
+def puppet_leave_handler(bot, update, user_data):    
+    leave_handler(bot, update, user_data, True)
 
 if __name__ == "__main__":
     main()

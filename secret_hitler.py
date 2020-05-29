@@ -1072,8 +1072,14 @@ class Game(object):
         and origin, perform the appropriate actions and change state if necessary.
         Returns a string that the bot should send as a reply or None if no reply is necessary.
         """
+        # imitate players
+        player_puppet = Player("99", args)
+        if command == "addpuppet":
+            self.add_player(player_puppet)
+        elif command == "removepuppet":
+            self.remove_player(player_puppet)
         # commands valid at any time
-        if command == "listplayers":
+        elif command == "listplayers":
             return self.list_players()
         elif command == "whois":
             target = self.get_player(args)
@@ -1119,7 +1125,7 @@ class Game(object):
         elif command == "timelogs":
             return self.show_time_logs()
         elif self.game_state == GameStates.ACCEPT_PLAYERS:
-            if command == "joingame":
+            if command == "joingame" or command == "joinpuppet":
                 # Check for expired joins
                 leavers_message = self.check_leavers()
                 if args and from_player in self.players:
